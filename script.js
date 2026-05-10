@@ -4,9 +4,6 @@
 const video = document.querySelector(".input_video");
 const canvas = document.querySelector(".output_canvas");
 const ctx = canvas.getContext("2d");
-const TARGET_FPS = 30;
-const FRAME_INTERVAL = 1000 / TARGET_FPS;
-let lastFrameTime = 0;
 
 // ==========================
 // CANVAS SIZE
@@ -29,14 +26,10 @@ function rotatePoint(x, y, angle) {
 }
 
 // ==========================
-// MAIN (ringan & gabung path)
+// MAIN (tanpa throttle render)
 // ==========================
 function onResults(results) {
-    const now = Date.now(); // hanya satu kali per frame
-    
-    // Skip jika belum waktunya render
-    if (now - lastFrameTime < FRAME_INTERVAL) return;
-    lastFrameTime = now;
+    const now = Date.now();
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.save();
@@ -56,7 +49,7 @@ function onResults(results) {
     ctx.fillStyle = vignette;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // GRID BACKGROUND - semua garis dalam satu path
+    // GRID BACKGROUND
     ctx.strokeStyle = "rgba(0,255,255,0.03)";
     ctx.lineWidth = 1;
     const gridSize = 40;
@@ -212,7 +205,7 @@ function onResults(results) {
                 ctx.shadowBlur = 40;
                 ctx.stroke();
 
-                // Glass panel & scanline (gabung)
+                // Glass panel & scanline
                 ctx.save();
                 ctx.translate(centerX, centerY);
                 ctx.rotate(angle);
@@ -275,7 +268,7 @@ function onResults(results) {
                 ctx.lineWidth = 1.5;
                 ctx.stroke();
 
-                // Energy particles (gabung dalam satu fill)
+                // Energy particles
                 ctx.beginPath();
                 for (let i = 0; i < 12; i++) {
                     const t = now * 0.001 + i * 0.5;
@@ -289,7 +282,7 @@ function onResults(results) {
                 ctx.shadowBlur = 20;
                 ctx.fill();
 
-                // Corner dots (gabung fill)
+                // Corner dots
                 ctx.beginPath();
                 front.forEach(p => {
                     ctx.moveTo(p.x + 4, p.y);
@@ -357,13 +350,25 @@ hands.setOptions({
 hands.onResults(onResults);
 
 // ==========================
+// THROTTLE & RESOLUSI RENDAH UNTUK HP
+// ==========================
+const TARGET_FPS = 24; // atur 20–30
+const FRAME_INTERVAL = 1000 / TARGET_FPS;
+let lastProcessTime = 0;
+
+// ==========================
 // CAMERA
 // ==========================
 const camera = new Camera(video, {
     onFrame: async () => {
+        const now = Date.now();
+        // Cuma kirim frame setiap FRAME_INTERVAL
+        if (now - lastProcessTime < FRAME_INTERVAL) return;
+        lastProcessTime = now;
         await hands.send({ image: video });
     },
-    width: 1280,
-    height: 720
+    width: 640,   // lebih ringan
+    height: 360
 });
+
 camera.start();
