@@ -4,6 +4,9 @@
 const video = document.querySelector(".input_video");
 const canvas = document.querySelector(".output_canvas");
 const ctx = canvas.getContext("2d");
+const TARGET_FPS = 30;
+const FRAME_INTERVAL = 1000 / TARGET_FPS;
+let lastFrameTime = 0;
 
 // ==========================
 // CANVAS SIZE
@@ -30,6 +33,10 @@ function rotatePoint(x, y, angle) {
 // ==========================
 function onResults(results) {
     const now = Date.now(); // hanya satu kali per frame
+    
+    // Skip jika belum waktunya render
+    if (now - lastFrameTime < FRAME_INTERVAL) return;
+    lastFrameTime = now;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.save();
