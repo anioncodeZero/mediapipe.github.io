@@ -29,8 +29,9 @@ function drawInteractionOverlay(now, tanganKiri, tanganKanan) {
         Math.pow(kiriJempol.x - kiriTelunjuk.x, 2) +
         Math.pow(kiriJempol.y - kiriTelunjuk.y, 2)
     );
-    const isFist = jarakkiri < 0.05; // threshold untuk deteksi kepalan
+    const isFist = jarakkiri < 0.5; // threshold untuk deteksi kepalan
 
+    console.log(`Jarak kiri: ${jarakkiri.toFixed(4)} - Mode: ${isFist ? "FIST" : "OPEN HAND"}`);
     // LOADING UI
     const loadingX = kananJempol.x * canvas.width;
     const loadingY = kananJempol.y * canvas.height;
@@ -54,7 +55,7 @@ function drawInteractionOverlay(now, tanganKiri, tanganKanan) {
     ctx.fillText("SCANNING", -35, 70);
     ctx.restore();
 
-    if (jarakkiri < 0.05) {
+    if (jarakkiri < 0.1) {
         drawTriangleMode(now, centerX, centerY, angle, boxSize, half);
     } else {
         drawFrontBoxMode(now, centerX, centerY, angle, half);
@@ -76,6 +77,8 @@ function drawInteractionOverlay(now, tanganKiri, tanganKanan) {
     ctx.shadowColor = "orange";
     ctx.shadowBlur = 30;
     ctx.stroke();
+    console.log(`Jarak kanan: ${jarak.toFixed(4)}`);
+    console.log(`Jarak kiri: ${jarakkiri.toFixed(4)}`);
 
     // CONTROL ORBS
     [kananJempol, kananTelunjuk].forEach(p => {
@@ -96,6 +99,7 @@ function drawInteractionOverlay(now, tanganKiri, tanganKanan) {
     ctx.fillStyle = "rgba(0,255,255,0.7)";
     ctx.fillText("NEURAL INTERFACE", centerX - 70, centerY - half - 40);
     ctx.fillText(`ENERGY ${Math.floor(boxSize)}`, centerX - 60, centerY + half + 45);
+
 }
 
 // ==========================
@@ -114,42 +118,13 @@ function drawTriangleMode(now, centerX, centerY, angle, boxSize, half) {
         return { x: r.x + centerX, y: r.y + centerY };
     });
 
-    ctx.beginPath();
+     ctx.beginPath();
     ctx.arc(centerX, centerY, half + 40 + Math.sin(now * 0.003) * 10, 0, Math.PI * 2);
     ctx.strokeStyle = "rgba(0,255,255,0.15)";
     ctx.lineWidth = 2;
     ctx.shadowColor = "cyan";
     ctx.shadowBlur = 40;
     ctx.stroke();
-
-    // Glass panel & scanline
-    ctx.save();
-    ctx.translate(centerX, centerY);
-    ctx.rotate(angle);
-    const glass = ctx.createLinearGradient(-half, -half, half, half);
-    glass.addColorStop(0, "rgba(0,255,255,0.10)");
-    glass.addColorStop(0.5, "rgba(255,255,255,0.02)");
-    glass.addColorStop(1, "rgba(0,100,255,0.05)");
-    ctx.fillStyle = glass;
-    ctx.fillRect(-half, -half, half * 2, half * 2);
-    const scan = (now * 0.35) % (half * 2);
-    ctx.beginPath();
-    ctx.moveTo(-half, -half + scan);
-    ctx.lineTo(half, -half + scan);
-    ctx.strokeStyle = "rgba(0,255,255,0.9)";
-    ctx.lineWidth = 3;
-    ctx.shadowBlur = 30;
-    ctx.stroke();
-    ctx.strokeStyle = "rgba(255,255,255,0.03)";
-    ctx.lineWidth = 1;
-    ctx.shadowBlur = 0;
-    ctx.beginPath();
-    for (let y = -half; y < half; y += 12) {
-        ctx.moveTo(-half, y);
-        ctx.lineTo(half, y);
-    }
-    ctx.stroke();
-    ctx.restore();
 
     ctx.beginPath();
     ctx.moveTo(pts[0].x, pts[0].y);
