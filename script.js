@@ -112,14 +112,15 @@ function onResults(results) {
             const boxSize = Math.max(160, jarak * 2400) + pulse;
             const half = boxSize / 2;
 
-            // DETEKSI KEPAL
-            const rightPalm = tanganKanan[0];
-            const dIndex = Math.hypot(tanganKanan[8].x - rightPalm.x, tanganKanan[8].y - rightPalm.y);
-            const dMiddle = Math.hypot(tanganKanan[12].x - rightPalm.x, tanganKanan[12].y - rightPalm.y);
-            const dRing = Math.hypot(tanganKanan[16].x - rightPalm.x, tanganKanan[16].y - rightPalm.y);
-            const dPinky = Math.hypot(tanganKanan[20].x - rightPalm.x, tanganKanan[20].y - rightPalm.y);
-            const isFist = dIndex < 0.18 && dMiddle < 0.18 && dRing < 0.18 && dPinky < 0.18;
-
+            // DETEKSI TANGAN KIRI JARI TELUNJUK DAN JARI JEMPOL MENDEKAT 
+            const centerxkiri = ((kiriJempol.x + kiriTelunjuk.x) / 2) * canvas.width;
+            const centerykiri = ((kiriJempol.y + kiriTelunjuk.y) / 2) * canvas.height;
+            const jarakkiri = Math.sqrt(
+                Math.pow(kiriJempol.x - kiriTelunjuk.x, 2) +
+                Math.pow(kiriJempol.y - kiriTelunjuk.y, 2)
+            );
+            const isFist = jarakkiri < 0.05; // threshold untuk deteksi kepalan
+            
             // LOADING UI
             const loadingX = kananJempol.x * canvas.width;
             const loadingY = kananJempol.y * canvas.height;
@@ -143,7 +144,8 @@ function onResults(results) {
             ctx.fillText("SCANNING", -35, 70);
             ctx.restore();
 
-            if (isFist) {
+            if (jarakkiri < 0.05
+            ) {
                 // SEGITIGA
                 const ts = boxSize * 0.7;
                 const th = ts / 2;
@@ -354,7 +356,7 @@ hands.onResults(onResults);
 // ==========================
 const TARGET_FPS = 24; // atur 20–30
 const FRAME_INTERVAL = 1000 / TARGET_FPS;
-let lastProcessTime = 0;
+let lastProcessTime = null;
 
 // ==========================
 // CAMERA
@@ -367,8 +369,8 @@ const camera = new Camera(video, {
         lastProcessTime = now;
         await hands.send({ image: video });
     },
-    width: 640,   // lebih ringan
-    height: 360
+    width: 540,   // lebih ringan
+    height: 260
 });
 
 camera.start();
